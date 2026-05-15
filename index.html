@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中华美食谱 - 中国各大菜系食谱大全</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        /* 头部导航 */
+        .header {
+            position: sticky;
+            top: 0;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+            padding: 15px 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::before {
+            content: "🍜";
+            font-size: 28px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            width: 300px;
+            font-size: 14px;
+        }
+
+        .search-box button {
+            background: white;
+            color: #ee5a5a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* 菜系分类导航 */
+        .category-nav {
+            background: white;
+            padding: 15px 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .category-list {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .category-item {
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8f8f8;
+            color: #666;
+        }
+
+        .category-item:hover, .category-item.active {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(238, 90, 90, 0.3);
+        }
+
+        /* 菜谱卡片区域 */
+        .recipes-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid #ff6b6b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 瀑布流布局 */
+        .waterfall {
+            column-count: 4;
+            column-gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .waterfall { column-count: 3; }
+        }
+
+        @media (max-width: 900px) {
+            .waterfall { column-count: 2; }
+        }
+
+        @media (max-width: 600px) {
+            .waterfall { column-count: 1; }
+            .search-box input { width: 200px; }
+        }
+
+        /* 菜谱卡片 - 小红书风格 */
+        .recipe-card {
+            break-inside: avoid;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .card-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .card-content {
+            padding: 15px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tag {
+            background: #fff5f5;
+            color: #ff6b6b;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .author {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .author-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 菜谱详情弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .modal-desc {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-title-detail {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ingredient-list, .step-list {
+            list-style: none;
+        }
+
+        .ingredient-list li {
+            padding: 10px 15px;
+            background: #fff5f5;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .step-list li {
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+            line-height: 1.7;
+        }
+
+        .tips {
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid #ffc107;
+        }
+
+        .tips-title {
+            font-weight: bold;
+            color: #f5a623;
+            margin-bottom: 8px;
+        }
+
+        /* 页脚 */
+        .footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 15px;
+        }
+
+        .footer-links a {
+            color: #ccc;
+            text-decoration: none;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f0f0f0;
+            border-top-color: #ff6b6b;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 头部 -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">中华美食谱</div>
+            <div class="search-box">
+                <input type="text" placeholder="搜索菜谱、食材..." id="searchInput">
+                <button onclick="searchRecipes()">搜索</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 菜系分类导航 -->
+    <nav class="category-nav">
+        <div class="category-list">
+            <div class="category-item active" data-cuisine="all">
+                <span>🌟</span> 全部菜系
+            </div>
+            <div class="category-item" data-cuisine="sichuan">
+                <span>🔥</span> 川菜
+            </div>
+            <div class="category-item" data-cuisine="cantonese">
+                <span>🥘</span> 粤菜
+            </div>
+            <div class="category-item" data-cuisine="shandong">
+                <span>🦐</span> 鲁菜
+            </div>
+            <div class="category-item" data-cuisine="jiangsu">
+                <span>🍲</span> 苏菜
+            </div>
+            <div class="category-item" data-cuisine="zhejiang">
+                <span>🍜</span> 浙菜
+            </div>
+            <div class="category-item" data-cuisine="fujian">
+                <span>🦑</span> 闽菜
+            </div>
+            <div class="category-item" data-cuisine="hunan">
+                <span>🌶️</span> 湘菜
+            </div>
+            <div class="category-item" data-cuisine="anhui">
+                <span>🍃</span> 徽菜
+            </div>
+            <div class="category-item" data-cuisine="beijing">
+                <span>🦆</span> 京菜
+            </div>
+        </div>
+    </nav>
+
+    <!-- 菜谱内容区域 -->
+    <main class="recipes-container">
+        <!-- 各菜系菜谱展示 -->
+        <section id="recipeSection">
+            <h2 class="section-title" id="currentCategory">🌟 全部菜系</h2>
+            <div class="waterfall" id="recipeGrid">
+                <!-- 菜谱卡片将通过 JavaScript 动态生成 -->
+            </div>
+        </section>
+    </main>
+
+    <!-- 菜谱详情弹窗 -->
+    <div class="modal" id="recipeModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">×</button>
+            <img class="modal-image" id="modalImage" src="" alt="">
+            <div class="modal-body" id="modalBody">
+                <!-- 详情内容通过 JavaScript 动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#">关于我们</a>
+                <a href="#">联系方式</a>
+                <a href="#">隐私政策</a>
+            </div>
+            <p>中华美食谱 - 传承中华饮食文化</p>
+            <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                精选各地方特色菜谱，弘扬中华美食文化
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // 菜谱数据库
+        const recipes = [
+            // 川菜
+            {
+                id: 1,
+                name: "麻婆豆腐",
+                cuisine: "sichuan",
+                cuisineName: "川菜",
+                tags: ["经典", "下饭", "家常"],
+                image: "mapo_tofu.jpg",
+                desc: "麻婆豆腐是四川传统名菜，以其麻辣鲜香著称，是川菜代表之一。",
+                author: "川味坊主",
+                likes: 2856,
+                collections: 1234,
+                ingredients: [
+                    { name: "嫩豆腐", amount: "400g" },
+                    { name: "牛肉末", amount: "100g" },
+                    { name: "郫县豆瓣酱", amount: "2大勺" },
+                    { name: "花椒粉", amount: "适量" },
+                    { name: "蒜末", amount: "15g" },
+                    { name: "姜末", amount: "10g" },
+                    { name: "生抽", amount: "1大勺" },
+                    { name: "水淀粉", amount: "适量" },
+                    { name: "食用油", amount: "适量" }
+                ],
+                steps: [
+                    "豆腐切成2厘米见方的小块，放入淡盐水中浸泡10分钟，捞出沥干。",
+                    "锅中放油烧热，下入牛肉末翻炒至变色，加入郫县豆瓣酱炒出红油。",
+                    "加入蒜末、姜末爆香，倒入适量清水或高汤。",
+                    "放入豆腐块，轻轻推动，加入生抽调味，中火煮5分钟。",
+                    "加入花椒粉，淋入水淀粉勾芡。",
+                    "出锅前撒上葱花即可，麻辣鲜香的麻婆豆腐就完成了。"
+                ],
+                tips: "豆腐用盐水浸泡可以使其更加紧实，不易碎。花椒粉建议用汉源贡椒，麻味更纯正。"
+            },
+            {
+                id: 2,
+                name: "宫保鸡丁",
+                cuisine: "sichuan",
+                cuisineName: "川菜",
+                tags: ["经典", "下酒", "宴客"],
+                image: "kung_pao_chicken.jpg",
+                desc: "宫保鸡丁是闻名中外的川菜代表，口味酸甜微辣，鸡肉嫩滑，花生酥脆。",
+                author: "川菜大师",
+                likes: 3421,
+                collections: 1567,
+                ingredients: [
+                    { name: "鸡胸肉", amount: "300g" },
+                    { name: "花生米", amount: "50g" },
+                    { name: "干辣椒", amount: "10个" },
+                    { name: "花椒", amount: "1小勺" },
+                    { name: "葱段", amount: "30g" },
+                    { name: "姜片", amount: "5g" },
+                    { name: "蒜片", amount: "5g" },
+                    { name: "醋", amount: "2大勺" },
+                    { name: "糖", amount: "1大勺" },
+                    { name: "生抽", amount: "1大勺" },
+                    { name: "料酒", amount: "1大勺" },
+                    { name: "淀粉", amount: "适量" }
+                ],
+                steps: [
+                    "鸡胸肉切丁，加入料酒、生抽、淀粉抓匀腌制15分钟。",
+                    "调制宫保汁：醋、糖、生抽、淀粉混合均匀。",
+                    "花生米炸至金黄酥脆备用，干辣椒切段。",
+                    "锅中放油，下入鸡丁滑炒至变色盛出。",
+                    "锅中留底油，下花椒、干辣椒、葱姜蒜爆香。",
+                    "倒入鸡丁和宫保汁快速翻炒，最后加入花生米即可。"
+                ],
+                tips: "鸡丁滑炒时间不宜过长，保持嫩滑口感。花生米最后放才能保持酥脆。"
+            },
+            {
+                id: 3,
+                name: "水煮牛肉",
+                cuisine: "sichuan",
+                cuisineName: "川菜",
+                tags: ["麻辣", "硬菜", "聚会"],
+                image: "boiled_beef.jpg",
+                desc: "水煮牛肉是川菜经典，牛肉片嫩滑，汤汁麻辣鲜香，配菜丰富。",
+                author: "火锅达人",
+                likes: 2156,
+                collections: 987,
+                ingredients: [
+                    { name: "牛肉片", amount: "400g" },
+                    { name: "豆芽", amount: "200g" },
+                    { name: "莴笋片", amount: "150g" },
+                    { name: "郫县豆瓣酱", amount: "3大勺" },
+                    { name: "干辣椒", amount: "15g" },
+                    { name: "花椒", amount: "10g" },
+                    { name: "蒜末", amount: "20g" },
+                    { name: "姜末", amount: "15g" },
+                    { name: "淀粉", amount: "适量" },
+                    { name: "高汤", amount: "500ml" }
+                ],
+                steps: [
+                    "牛肉片加料酒、盐、淀粉抓匀腌制。",
+                    "豆芽、莴笋焯水铺在碗底。",
+                    "锅中放油，下豆瓣酱、姜末、蒜末炒出红油。",
+                    "加入高汤烧开，下牛肉片滑熟。",
+                    "牛肉连汤倒在配菜上，表面撒干辣椒段和花椒。",
+                    "淋上热油激发香气，水煮牛肉完成。"
+                ],
+                tips: "淋热油是关键步骤，油温要够高才能激发出辣椒和花椒的香气。"
+            },
+
+            // 粤菜
+            {
+                id: 4,
+                name: "白切鸡",
+                cuisine: "cantonese",
+                cuisineName: "粤菜",
+                tags: ["经典", "清淡", "宴客"],
+                image: "white_cut_chicken.jpg",
+                desc: "白切鸡是广东名菜，鸡肉鲜嫩多汁，保持原汁原味，配以姜葱酱汁食用。",
+                author: "粤菜师傅",
+                likes: 1876,
+                collections: 892,
+                ingredients: [
+                    { name: "三黄鸡", amount: "1只（约1.5kg）" },
+                    { name: "姜", amount: "50g" },
+                    { name: "葱", amount: "30g" },
+                    { name: "料酒", amount: "2大勺" },
+                    { name: "盐", amount: "适量" },
+                    { name: "花生油", amount: "3大勺" }
+                ],
+                steps: [
+                    "鸡处理干净，姜切片，葱切段。",
+                    "锅中加水，放入姜片、葱段、料酒烧开。",
+                    "提着鸡头将整只鸡放入沸水中浸泡30秒。",
+                    "取出沥干，再放入沸水中浸泡30秒，重复3次。",
+                    "最后将鸡完全放入锅中，小火煮20分钟。",
+                    "捞出放入冰水中浸泡10分钟，切块装盘。",
+                    "姜葱切末，加盐，淋上热油做成蘸料。"
+                ],
+                tips: "三提三放是让鸡肉皮爽肉滑的关键，冰水浸泡使鸡肉更紧实。"
+            },
+            {
+                id: 5,
+                name: "叉烧肉",
+                cuisine: "cantonese",
+                cuisineName: "粤菜",
+                tags: ["经典", "甜蜜", "下饭"],
+                image: "char_siu.jpg",
+                desc: "广式叉烧是粤菜经典，色泽红亮，甜香可口，肉质嫩滑。",
+                author: "烧腊师傅",
+                likes: 2341,
+                collections: 1123,
+                ingredients: [
+                    { name: "梅花肉/里脊肉", amount: "500g" },
+                    { name: "叉烧酱", amount: "3大勺" },
+                    { name: "蚝油", amount: "2大勺" },
+                    { name: "蜂蜜", amount: "2大勺" },
+                    { name: "生抽", amount: "1大勺" },
+                    { name: "红曲粉", amount: "少许" },
+                    { name: "蒜末", amount: "10g" }
+                ],
+                steps: [
+                    "猪肉切成约3厘米厚的长条。",
+                    "加入叉烧酱、蚝油、蜂蜜、生抽、蒜末、红曲粉抓匀。",
+                    "盖上保鲜膜冷藏腌制至少4小时，最好过夜。",
+                    "烤箱预热200°C，烤盘铺锡纸。",
+                    "将肉条放在烤网上，中层烤20分钟。",
+                    "取出翻面，刷上腌料汁，再烤15分钟。",
+                    "表面焦糖色即可出炉，切片食用。"
+                ],
+                tips: "红曲粉是上色的关键，可使叉烧呈现漂亮的红色。没有烤箱也可用平底锅煎制。"
+            },
+            {
+                id: 6,
+                name: "清蒸鲈鱼",
+                cuisine: "cantonese",
+                cuisineName: "粤菜",
+                tags: ["清淡", "营养", "家常"],
+                image: "steamed_sea_bass.jpg",
+                desc: "清蒸鲈鱼保持鱼肉鲜嫩，清淡可口，是粤菜中经典的蒸鱼做法。",
+                author: "海鲜大厨",
+                likes: 1654,
+                collections: 756,
+                ingredients: [
+                    { name: "鲈鱼", amount: "1条（约500g）" },
+                    { name: "姜丝", amount: "20g" },
+                    { name: "葱丝", amount: "30g" },
+                    { name: "蒸鱼豉油", amount: "3大勺" },
+                    { name: "料酒", amount: "1大勺" },
+                    { name: "热油", amount: "2大勺" }
+                ],
+                steps: [
+                    "鲈鱼处理干净，两面划几刀，抹上料酒和盐腌制10分钟。",
+                    "盘底铺上葱段，放上鲈鱼，鱼身铺姜丝。",
+                    "水开后放入蒸锅，大火蒸8-10分钟。",
+                    "取出倒掉蒸出的汤汁，去掉姜丝。",
+                    "鱼身重新铺上葱丝，淋上蒸鱼豉油。",
+                    "淋上烧热的食用油，鲜香四溢。"
+                ],
+                tips: "蒸鱼时间要根据鱼的大小调整，一般500g的鱼蒸8分钟即可。倒掉蒸汁可去腥。"
+            },
+
+            // 鲁菜
+            {
+                id: 7,
+                name: "糖醋鲤鱼",
+                cuisine: "shandong",
+                cuisineName: "鲁菜",
+                tags: ["经典", "喜庆", "酸甜"],
+                image: "sweet_sour_carps.jpg",
+                desc: "糖醋鲤鱼是鲁菜代表，外酥里嫩，酸甜适口，造型美观大方。",
+                author: "鲁菜传承人",
+                likes: 1234,
+                collections: 567,
+                ingredients: [
+                    { name: "鲤鱼", amount: "1条（约750g）" },
+                    { name: "番茄酱", amount: "3大勺" },
+                    { name: "白醋", amount: "2大勺" },
+                    { name: "白糖", amount: "3大勺" },
+                    { name: "淀粉", amount: "适量" },
+                    { name: "面粉", amount: "适量" },
+                    { name: "姜丝", amount: "10g" },
+                    { name: "蒜末", amount: "10g" }
+                ],
+                steps: [
+                    "鲤鱼处理干净，在鱼身两侧打花刀。",
+                    "面粉和淀粉按2:1混合，加水调成糊状。",
+                    "鱼身裹满面糊，下油锅炸至金黄酥脆，捞出沥油。",
+                    "调糖醋汁：番茄酱、白醋、白糖、少量水混合。",
+                    "锅中放少许油，下姜丝蒜末爆香，倒入糖醋汁烧开。",
+                    "淋入水淀粉勾芡，浇在炸好的鲤鱼上即可。"
+                ],
+                tips: "炸鱼时油温要高，才能使外皮酥脆。糖醋汁的比例可根据口味调整。"
+            },
+            {
+                id: 8,
+                name: "葱烧海参",
+                cuisine: "shandong",
+                cuisineName: "鲁菜",
+                tags: ["高端", "滋补", "宴客"],
+                image: "braised_sea_cucumber.jpg",
+                desc: "葱烧海参是鲁菜经典名菜，海参软糯入味，葱香浓郁，营养丰富。",
+                author: "鲁菜大师",
+                likes: 987,
+                collections: 432,
+                ingredients: [
+                    { name: "水发海参", amount: "4条" },
+                    { name: "大葱", amount: "200g" },
+                    { name: "高汤", amount: "300ml" },
+                    { name: "蚝油", amount: "2大勺" },
+                    { name: "生抽", amount: "1大勺" },
+                    { name: "白糖", amount: "1小勺" },
+                    { name: "淀粉", amount: "适量" },
+                    { name: "料酒", amount: "1大勺" }
+                ],
+                steps: [
+                    "海参切成条状，用清水浸泡去腥。",
+                    "大葱切成约5厘米长的段。",
+                    "锅中放油，下葱段小火慢炸至金黄，捞出葱段备用。",
+                    "锅中留底油，下入海参翻炒。",
+                    "加入料酒、高汤、蚝油、生抽、白糖烧开。",
+                    "小火焖煮10分钟，放入炸好的葱段。",
+                    "淋入水淀粉勾芡，淋少许明油即可。"
+                ],
+                tips: "炸葱段是这道菜的关键，要小火慢炸至葱段完全变软变黄。"
+            },
+
+            // 苏菜
+            {
+                id: 9,
+                name: "松鼠桂鱼",
+                cuisine: "jiangsu",
+                cuisineName: "苏菜",
+                tags: ["经典", "造型菜", "宴客"],
+                image: "squirrel_shaped_ fish.jpg",
+                desc: "松鼠桂鱼是苏帮菜代表，外酥里嫩，酸甜可口，造型独特似松鼠。",
+                author: "苏州名厨",
+                likes: 1567,
+                collections: 789,
+                ingredients: [
+                    { name: "桂鱼", amount: "1条（约600g）" },
+                    { name: "番茄酱", amount: "4大勺" },
+                    { name: "白醋", amount: "2大勺" },
+                    { name: "白糖", amount: "3大勺" },
+                    { name: "淀粉", amount: "适量" },
+                    { name: "松子", amount: "30g" },
+                    { name: "豌豆", amount: "30g" }
+                ],
+                steps: [
+                    "桂鱼处理干净，去头留尾，鱼身去骨。",
+                    "在鱼肉内侧打菱形花刀，撒上料酒和盐腌制。",
+                    "均匀裹上淀粉，提起鱼尾使花刀打开。",
+                    "油温180°C，将鱼身炸至金黄酥脆，捞出装盘。",
+                    "松子和豌豆焯水备用。",
+                    "调制糖醋汁，淋在鱼身上，撒上松子和豌豆。"
+                ],
+                tips: "打花刀要均匀深透，炸制时才能使鱼肉翻起形成漂亮的造型。"
+            },
+            {
+                id: 10,
+                name: "狮子头",
+                cuisine: "jiangsu",
+                cuisineName: "苏菜",
+                tags: ["经典", "家常", "软糯"],
+                image: "lion_head.jpg",
+                desc: "扬州狮子头是江苏名菜，肉质鲜嫩，入口即化，汤汁醇厚。",
+                author: "淮扬名厨",
+                likes: 2134,
+                collections: 1023,
+                ingredients: [
+                    { name: "五花肉", amount: "400g" },
+                    { name: "马蹄", amount: "4个" },
+                    { name: "鸡蛋", amount: "1个" },
+                    { name: "淀粉", amount: "2大勺" },
+                    { name: "料酒", amount: "2大勺" },
+                    { name: "生抽", amount: "2大勺" },
+                    { name: "高汤", amount: "500ml" },
+                    { name: "青菜", amount: "适量" }
+                ],
+                steps: [
+                    "五花肉切成石榴粒大小的丁，不要剁成泥。",
+                    "马蹄切碎，拌入肉丁中。",
+                    "加入蛋液、淀粉、料酒、生抽，顺一个方向搅拌上劲。",
+                    "摔打肉馅至起胶，搓成约80g一个大丸子。",
+                    "锅中放油，下入丸子煎至表面金黄。",
+                    "加入高汤，大火烧开转小火炖2小时。",
+                    "出锅前放入青菜，狮子头软糯入味。"
+                ],
+                tips: "肉丁不要剁太细，保留颗粒感口感更好。摔打是让狮子头紧实不散的关键。"
+            },
+
+            // 浙菜
+            {
+                id: 11,
+                name: "东坡肉",
+                cuisine: "zhejiang",
+                cuisineName: "浙菜",
+                tags: ["经典", "大肉", "宴客"],
+                image: "dongpo_pork.jpg",
+                desc: "东坡肉是杭州名菜，色泽红亮，软糯入味，肥而不腻，相传为苏东坡所创。",
+                author: "杭帮菜大师",
+                likes: 2567,
+                collections: 1234,
+                ingredients: [
+                    { name: "五花肉", amount: "600g" },
+                    { name: "绍兴酒", amount: "200ml" },
+                    { name: "冰糖", amount: "50g" },
+                    { name: "生抽", amount: "3大勺" },
+                    { name: "老抽", amount: "1大勺" },
+                    { name: "姜片", amount: "30g" },
+                    { name: "葱段", amount: "50g" },
+                    { name: "八角", amount: "2个" }
+                ],
+                steps: [
+                    "五花肉切成约5厘米见方的块。",
+                    "冷水下锅焯水，撇去浮沫，捞出洗净。",
+                    "砂锅底铺上葱段和姜片，放上肉块。",
+                    "加入绍兴酒、生抽、老抽、冰糖、八角。",
+                    "大火烧开，转小火焖煮1.5小时。",
+                    "期间翻面一次，让肉块均匀上色。",
+                    "取出肉块装盘，淋上浓稠的汤汁即可。"
+                ],
+                tips: "炖煮时火候要小，保持微沸状态。加酒不加水是正宗做法。"
+            },
+            {
+                id: 12,
+                name: "龙井虾仁",
+                cuisine: "zhejiang",
+                cuisineName: "浙菜",
+                tags: ["经典", "清淡", "茶香"],
+                image: "longjing_shrimp.jpg",
+                desc: "龙井虾仁是杭州名菜，虾仁鲜嫩，茶香清幽，是茶与菜的完美结合。",
+                author: "西湖厨师",
+                likes: 1789,
+                collections: 876,
+                ingredients: [
+                    { name: "鲜虾仁", amount: "300g" },
+                    { name: "龙井茶叶", amount: "10g" },
+                    { name: "蛋清", amount: "1个" },
+                    { name: "淀粉", amount: "1大勺" },
+                    { name: "料酒", amount: "1大勺" },
+                    { name: "盐", amount: "适量" }
+                ],
+                steps: [
+                    "虾仁洗净，吸干水分。",
+                    "加入蛋清、淀粉、料酒、盐抓匀腌制10分钟。",
+                    "龙井茶用80°C水泡开，取茶叶和茶汤备用。",
+                    "油温三成热，下入虾仁滑炒至变色盛出。",
+                    "锅中留底油，下入虾仁和茶叶快速翻炒。",
+                    "淋入少许茶汤，出锅装盘。"
+                ],
+                tips: "虾仁滑炒时间要短，保持嫩滑。茶叶用温水泡开，水温过高会破坏香气。"
+            },
+
+            // 闽菜
+            {
+                id: 13,
+                name: "佛跳墙",
+                cuisine: "fujian",
+                cuisineName: "闽菜",
+                tags: ["高端", "滋补", "宴客"],
+                image: "buddha_jumps.jpg",
+                desc: "佛跳墙是福建名菜，集鲍鱼、海参、鱼翅等山珍海味于一体，汤浓味厚。",
+                author: "闽菜大师",
+                likes: 876,
+                collections: 456,
+                ingredients: [
+                    { name: "鲍鱼", amount: "6只" },
+                    { name: "海参", amount: "4条" },
+                    { name: "鱼翅", amount: "50g" },
+                    { name: "花胶", amount: "50g" },
+                    { name: "瑶柱", amount: "30g" },
+                    { name: "鸡肉", amount: "200g" },
+                    { name: "猪蹄筋", amount: "100g" },
+                    { name: "绍兴酒", amount: "100ml" },
+                    { name: "高汤", amount: "1000ml" }
+                ],
+                steps: [
+                    "所有干货提前泡发，鲍鱼、海参切条。",
+                    "鸡肉切块，焯水备用。",
+                    "各种海鲜分别用高汤煨制入味。",
+                    "陶罐底部铺上姜片和葱段。",
+                    "依次放入鸡块、蹄筋、各种海鲜。",
+                    "加入高汤和绍兴酒，盖上盖子。",
+                    "上笼蒸4小时，佛跳墙醇香四溢。"
+                ],
+                tips: "正宗的佛跳墙需要多种干货，成本较高。可根据预算选择材料搭配。"
+            },
+            {
+                id: 14,
+                name: "沙茶面",
+                cuisine: "fujian",
+                cuisineName: "闽菜",
+                tags: ["小吃", "街头", "特色"],
+                image: "satay_noodles.jpg",
+                desc: "沙茶面是厦门特色小吃，汤头浓郁，沙茶酱香，搭配各种卤味。",
+                author: "闽南味道",
+                likes: 1432,
+                collections: 654,
+                ingredients: [
+                    { name: "碱水面", amount: "200g" },
+                    { name: "沙茶酱", amount: "3大勺" },
+                    { name: "花生酱", amount: "1大勺" },
+                    { name: "高汤", amount: "500ml" },
+                    { name: "豆干", amount: "2块" },
+                    { name: "鸭血", amount: "100g" },
+                    { name: "大肠", amount: "50g" },
+                    { name: "葱花", amount: "适量" }
+                ],
+                steps: [
+                    "沙茶酱和花生酱混合，加少许温水调开。",
+                    "锅中放油，下入沙茶酱炒香。",
+                    "加入高汤烧开，调入适量盐。",
+                    "面条煮熟捞出，放入碗中。",
+                    "浇上沙茶汤头。",
+                    "搭配豆干、鸭血、大肠等卤味。",
+                    "撒上葱花即可享用。"
+                ],
+                tips: "沙茶酱和花生酱的比例约3:1，调出的味道最正宗。"
+            },
+
+            // 湘菜
+            {
+                id: 15,
+                name: "剁椒鱼头",
+                cuisine: "hunan",
+                cuisineName: "湘菜",
+                tags: ["经典", "麻辣", "下饭"],
+                image: "chopped_chili_fish.jpg",
+                desc: "剁椒鱼头是湖南名菜，鱼肉鲜嫩，剁椒香辣，是湘菜代表之一。",
+                author: "湘菜师傅",
+                likes: 2876,
+                collections: 1456,
+                ingredients: [
+                    { name: "鱼头", amount: "1个（约750g）" },
+                    { name: "剁椒", amount: "150g" },
+                    { name: "野山椒", amount: "50g" },
+                    { name: "姜丝", amount: "20g" },
+                    { name: "蒜末", amount: "15g" },
+                    { name: "料酒", amount: "2大勺" },
+                    { name: "蒸鱼豉油", amount: "2大勺" },
+                    { name: "葱花", amount: "适量" }
+                ],
+                steps: [
+                    "鱼头处理干净，从中间劈开但不要断开。",
+                    "鱼头抹上料酒和盐，铺上姜丝腌制15分钟。",
+                    "剁椒和野山椒混合，铺在鱼头上。",
+                    "水开后放入蒸锅，大火蒸12-15分钟。",
+                    "取出倒掉蒸出的汤汁。",
+                    "淋上蒸鱼豉油，撒上蒜末和葱花。",
+                    "淋上滚烫的热油，剁椒鱼头完成。"
+                ],
+                tips: "蒸鱼时间要根据鱼头大小调整，判断标准是鱼肉完全变白且能用筷子轻松戳穿。"
+            },
+            {
+                id: 16,
+                name: "辣椒炒肉",
+                cuisine: "hunan",
+                cuisineName: "湘菜",
+                tags: ["家常", "下饭", "快手"],
+                image: "chili_pork.jpg",
+                desc: "辣椒炒肉是湖南人家家户户都会做的家常菜，简单却超级下饭。",
+                author: "湖南妈妈",
+                likes: 3567,
+                collections: 1876,
+                ingredients: [
+                    { name: "五花肉", amount: "200g" },
+                    { name: "青辣椒", amount: "300g" },
+                    { name: "红辣椒", amount: "50g" },
+                    { name: "蒜末", amount: "15g" },
+                    { name: "豆豉", amount: "1小勺" },
+                    { name: "生抽", amount: "2大勺" },
+                    { name: "老抽", amount: "1小勺" },
+                    { name: "料酒", amount: "1大勺" }
+                ],
+                steps: [
+                    "五花肉切薄片，青红辣椒切滚刀块。",
+                    "锅中不放油，下入辣椒煸炒至虎皮状，盛出备用。",
+                    "锅中放少许油，下入五花肉片煸炒出油。",
+                    "肉片边缘微焦时，加入蒜末和豆豉爆香。",
+                    "加入料酒、生抽、老抽翻炒均匀。",
+                    "倒入煸好的辣椒，快速翻炒几下即可出锅。"
+                ],
+                tips: "先煸辣椒去水分更香。五花肉要煸到出油、表面微焦才好吃。"
+            },
+
+            // 徽菜
+            {
+                id: 17,
+                name: "黄山炖鸽",
+                cuisine: "anhui",
+                cuisineName: "徽菜",
+                tags: ["滋补", "炖汤", "养生"],
+                image: "huangshan_pigeon.jpg",
+                desc: "黄山炖鸽是安徽名菜，鸽子肉嫩汤鲜，是著名的滋补佳品。",
+                author: "徽菜传人",
+                likes: 987,
+                collections: 432,
+                ingredients: [
+                    { name: "乳鸽", amount: "2只" },
+                    { name: "火腿", amount: "50g" },
+                    { name: "山药", amount: "150g" },
+                    { name: "枸杞", amount: "10g" },
+                    { name: "姜片", amount: "15g" },
+                    { name: "料酒", amount: "2大勺" },
+                    { name: "盐", amount: "适量" }
+                ],
+                steps: [
+                    "乳鸽处理干净，剁成小块，焯水去血沫。",
+                    "火腿切成薄片，山药切滚刀块。",
+                    "砂锅中加入清水，放入鸽肉、火腿、姜片。",
+                    "大火烧开，撇去浮沫，加入料酒。",
+                    "转小火炖1小时，加入山药继续炖30分钟。",
+                    "出锅前加入枸杞和盐调味。"
+                ],
+                tips: "炖汤要小火慢炖，火腿有咸味，盐要少放。"
+            },
+            {
+                id: 18,
+                name: "徽州毛豆腐",
+                cuisine: "anhui",
+                cuisineName: "徽菜",
+                tags: ["特色", "发酵", "小吃"],
+                image: "huizhou_hairy_tofu.jpg",
+                desc: "徽州毛豆腐是安徽特色，表面长满白色绒毛，煎制后外酥里嫩，风味独特。",
+                author: "徽州老饕",
+                likes: 765,
+                collections: 321,
+                ingredients: [
+                    { name: "毛豆腐", amount: "5块" },
+                    { name: "葱姜末", amount: "各10g" },
+                    { name: "肉末", amount: "50g" },
+                    { name: "豆瓣酱", amount: "1大勺" },
+                    { name: "生抽", amount: "1大勺" },
+                    { name: "白糖", amount: "少许" },
+                    { name: "高汤", amount: "适量" }
+                ],
+                steps: [
+                    "毛豆腐切成厚片，两面略煎至金黄。",
+                    "锅中放油，下入肉末炒散。",
+                    "加入豆瓣酱、葱姜末炒香。",
+                    "加入高汤、生抽、白糖烧开。",
+                    "放入煎好的毛豆腐，小火烧入味。",
+                    "收汁后即可出锅。"
+                ],
+                tips: "毛豆腐发酵会有绒毛，这是正常的，是徽州特色美食。"
+            },
+
+            // 京菜
+            {
+                id: 19,
+                name: "北京烤鸭",
+                cuisine: "beijing",
+                cuisineName: "京菜",
+                tags: ["经典", "国宴", "必吃"],
+                image: "peking_duck.jpg",
+                desc: "北京烤鸭是首都名菜，皮脆肉嫩，用薄饼卷食，搭配葱丝甜面酱。",
+                author: "烤鸭大师",
+                likes: 4532,
+                collections: 2345,
+                ingredients: [
+                    { name: "鸭子", amount: "1只（约2kg）" },
+                    { name: "麦芽糖", amount: "50g" },
+                    { name: "料酒", amount: "2大勺" },
+                    { name: "白醋", amount: "1大勺" },
+                    { name: "葱丝", amount: "适量" },
+                    { name: "黄瓜条", amount: "适量" },
+                    { name: "甜面酱", amount: "适量" },
+                    { name: "薄饼", amount: "12张" }
+                ],
+                steps: [
+                    "鸭子处理干净，用气泵充气使皮肉分离。",
+                    "开水烫皮，淋上由麦芽糖、料酒、白醋调成的脆皮水。",
+                    "挂在通风处风干24小时。",
+                    "将鸭子放入烤箱或挂炉，200°C烤30分钟。",
+                    "取出翻面，再烤20分钟至表皮金黄酥脆。",
+                    "片皮切块，配薄饼、葱丝、黄瓜条、甜面酱卷食。"
+                ],
+                tips: "风干是烤鸭皮脆的关键，有条件可风干48小时。"
+            },
+            {
+                id: 20,
+                name: "京酱肉丝",
+                cuisine: "beijing",
+                cuisineName: "京菜",
+                tags: ["经典", "下饭", "家常"],
+                image: "beijing_pork.jpg",
+                desc: "京酱肉丝是北京家常菜，肉丝嫩滑，酱香浓郁，配上豆皮葱丝，非常下饭。",
+                author: "京菜师傅",
+                likes: 2345,
+                collections: 1123,
+                ingredients: [
+                    { name: "猪里脊", amount: "300g" },
+                    { name: "甜面酱", amount: "3大勺" },
+                    { name: "豆皮", amount: "4张" },
+                    { name: "大葱", amount: "1根" },
+                    { name: "蛋清", amount: "1个" },
+                    { name: "淀粉", amount: "1大勺" },
+                    { name: "料酒", amount: "1大勺" },
+                    { name: "白糖", amount: "1小勺" },
+                    { name: "油", amount: "适量" }
+                ],
+                steps: [
+                    "里脊切成细丝，加入蛋清、淀粉、料酒抓匀腌制。",
+                    "甜面酱加少许白糖和清水调匀。",
+                    "豆皮切成方形，焯水后铺在盘底。",
+                    "锅中放油，下入肉丝滑炒至变色盛出。",
+                    "锅中留底油，下入甜面酱炒香炒出油。",
+                    "倒入肉丝快速翻炒，使酱均匀裹住肉丝。",
+                    "出锅放在豆皮上，撒上葱丝。"
+                ],
+                tips: "肉丝要切得细且均匀，顺纹切才能嫩滑。甜面酱要炒到出油才香。"
+            }
+        ];
+
+        // 当前选中的菜系
+        let currentCuisine = 'all';
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            renderRecipes();
+            setupCategoryListeners();
+        });
+
+        // 设置分类切换监听
+        function setupCategoryListeners() {
+            const categoryItems = document.querySelectorAll('.category-item');
+            categoryItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    categoryItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCuisine = this.dataset.cuisine;
+                    updateSectionTitle();
+                    renderRecipes();
+                });
+            });
+        }
+
+        // 更新标题
+        function updateSectionTitle() {
+            const cuisineNames = {
+                'all': '🌟 全部菜系',
+                'sichuan': '🔥 川菜',
+                'cantonese': '🥘 粤菜',
+                'shandong': '🦐 鲁菜',
+                'jiangsu': '🍲 苏菜',
+                'zhejiang': '🍜 浙菜',
+                'fujian': '🦑 闽菜',
+                'hunan': '🌶️ 湘菜',
+                'anhui': '🍃 徽菜',
+                'beijing': '🦆 京菜'
+            };
+            document.getElementById('currentCategory').textContent = cuisineNames[currentCuisine];
+        }
+
+        // 渲染菜谱卡片
+        function renderRecipes() {
+            const grid = document.getElementById('recipeGrid');
+            const filteredRecipes = currentCuisine === 'all'
+                ? recipes
+                : recipes.filter(r => r.cuisine === currentCuisine);
+
+            grid.innerHTML = filteredRecipes.map(recipe => `
+                <div class="recipe-card" onclick="openModal(${recipe.id})">
+                    <img class="card-image" src="images/${recipe.image}" alt="${recipe.name}"
+                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%23f0f0f0%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2214%22>${recipe.name}</text></svg>'">
+                    <div class="card-content">
+                        <div class="card-title">${recipe.name}</div>
+                        <div class="card-tags">
+                            ${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="card-meta">
+                            <div class="author">
+                                <div class="author-avatar">${recipe.author[0]}</div>
+                                <span>${recipe.author}</span>
+                            </div>
+                            <div class="stats">
+                                <span class="stat-item">❤️ ${recipe.likes}</span>
+                                <span class="stat-item">⭐ ${recipe.collections}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 打开详情弹窗
+        function openModal(id) {
+            const recipe = recipes.find(r => r.id === id);
+            if (!recipe) return;
+
+            document.getElementById('modalImage').src = `images/${recipe.image}`;
+            document.getElementById('modalImage').onerror = function() {
+                this.src = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 250'><rect fill='#ff6b6b' width='400' height='250'/><text x='200' y='130' text-anchor='middle' fill='white' font-size='24'>${recipe.name}</text></svg>`;
+            };
+
+            document.getElementById('modalBody').innerHTML = `
+                <h2 class="modal-title">${recipe.name}</h2>
+                <div class="card-tags" style="margin-bottom: 15px;">
+                    ${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    <span class="tag" style="background:#e8f5e9;color:#4caf50;">${recipe.cuisineName}</span>
+                </div>
+                <p class="modal-desc">${recipe.desc}</p>
+
+                <div class="section">
+                    <h3 class="section-title-detail">🥬 食材准备</h3>
+                    <ul class="ingredient-list">
+                        ${recipe.ingredients.map(ing => `
+                            <li>
+                                <span>${ing.name}</span>
+                                <span style="color:#ff6b6b;font-weight:500;">${ing.amount}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title-detail">👨‍🍳 烹饪步骤</h3>
+                    <ol class="step-list">
+                        ${recipe.steps.map((step, i) => `
+                            <li>
+                                <span class="step-number">${i + 1}</span>
+                                <span class="step-content">${step}</span>
+                            </li>
+                        `).join('')}
+                    </ol>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title-detail">💡 小贴士</h3>
+                    <div class="tips">
+                        <div class="tips-title">温馨提示</div>
+                        <p>${recipe.tips}</p>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('recipeModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('recipeModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // 点击弹窗背景关闭
+        document.getElementById('recipeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // ESC 键关闭弹窗
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // 搜索功能
+        function searchRecipes() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (!query) {
+                renderRecipes();
+                return;
+            }
+
+            const filtered = recipes.filter(r =>
+                r.name.toLowerCase().includes(query) ||
+                r.tags.some(tag => tag.toLowerCase().includes(query)) ||
+                r.ingredients.some(ing => ing.name.toLowerCase().includes(query))
+            );
+
+            const grid = document.getElementById('recipeGrid');
+            grid.innerHTML = filtered.map(recipe => `
+                <div class="recipe-card" onclick="openModal(${recipe.id})">
+                    <img class="card-image" src="images/${recipe.image}" alt="${recipe.name}"
+                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%23f0f0f0%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2214%22>${recipe.name}</text></svg>'">
+                    <div class="card-content">
+                        <div class="card-title">${recipe.name}</div>
+                        <div class="card-tags">
+                            ${recipe.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="card-meta">
+                            <div class="author">
+                                <div class="author-avatar">${recipe.author[0]}</div>
+                                <span>${recipe.author}</span>
+                            </div>
+                            <div class="stats">
+                                <span class="stat-item">❤️ ${recipe.likes}</span>
+                                <span class="stat-item">⭐ ${recipe.collections}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('currentCategory').textContent = `🔍 搜索结果: ${query}`;
+        }
+
+        // 回车搜索
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchRecipes();
+            }
+        });
+    </script>
+</body>
+</html>
