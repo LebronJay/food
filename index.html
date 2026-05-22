@@ -168,6 +168,32 @@
             height: 200px;
             object-fit: cover;
             display: block;
+            background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+            min-height: 200px;
+            transition: opacity 0.3s ease;
+        }
+
+        .card-image[loading] {
+            opacity: 0;
+        }
+
+        .card-image.loaded {
+            opacity: 1;
+        }
+
+        /* 图片占位符/骨架屏 */
+        .image-placeholder {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px 8px 0 0;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
         .card-content {
@@ -2516,7 +2542,13 @@
             grid.innerHTML = filteredRecipes.map(recipe => {
                 return `
                 <div class="recipe-card" onclick="openModal(${recipe.id})">
-                    <img class="card-image" src="${recipe.image}" alt="${recipe.name}" loading="lazy">
+                    <div class="image-placeholder" id="placeholder-${recipe.id}"></div>
+                    <img class="card-image"
+                         src="${recipe.image}"
+                         alt="${recipe.name}"
+                         loading="lazy"
+                         onload="this.classList.add('loaded'); document.getElementById('placeholder-${recipe.id}').style.display='none';"
+                         onerror="this.style.display='none';">
                     <div class="card-content">
                         <div class="card-title">${recipe.name}</div>
                         <div class="card-tags">
@@ -2535,6 +2567,32 @@
                     </div>
                 </div>
             `}).join('');
+
+            // 使用 Intersection Observer 增强懒加载
+            setupLazyLoading();
+        }
+
+        // 增强型懒加载
+        function setupLazyLoading() {
+            const images = document.querySelectorAll('.card-image[loading="lazy"]');
+            
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            // 图片进入视口时开始加载
+                            img.setAttribute('loading', '');
+                            observer.unobserve(img);
+                        }
+                    });
+                }, {
+                    rootMargin: '50px', // 提前 50px 开始加载
+                    threshold: 0.1
+                });
+
+                images.forEach(img => imageObserver.observe(img));
+            }
         }
 
         // 打开详情弹窗
